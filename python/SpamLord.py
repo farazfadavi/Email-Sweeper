@@ -7,6 +7,43 @@ from termcolor import colored
 my_email_pat = '(\w(\w?-?\.?)+)\s*(\(followed by &ldquo;|\(followed by "|\(followed by \')?(@| where | at |\(at\)|&#x40;)\s*((\w?-?)+)\s*(\.|dom|dot|dt|;)?\s*((\w?-?)+)\s*(.|dom|dot|dt|;)\s*(edu|com|co.uk|org|-e-d-u)\\b'
 my_emailObfuscate_pat = 'obfuscate\((\'|")\s*((\w?-?)+)\s*(\.|dom|dot|dt|;)?\s*((\w?-?)+)\s*(.|dom|dot|dt|;)\s*(edu|com|co.uk|org|-e-d-u)(\'|"),(\'|")(\w(\w?-?\.?)+)\s*'
 
+
+def findEmailMatches(line, name):
+    res = []
+    matches = re.findall(my_email_pat, line.lower())
+    # if len(matches) != 0:
+    #     print colored(matches, 'red')
+    for m in matches:
+        if  m[0] not in ["server"]:
+            if m[7] == "" or m[7] in ["dom","dot","dt",";"]:
+                m = (m[0].replace("-", ""), m[4].replace("-", ""),m[10].replace("-", ""))
+                email = '%s@%s.%s' % m
+                res.append((name, 'e', email))
+            else:
+                m = (m[0].replace("-", ""), m[4].replace("-", ""), m[7].replace("-", ""),m[10].replace("-", ""))
+                email = '%s@%s.%s.%s' % m
+                res.append((name, 'e', email))
+            # print "\t" + colored(m, 'green')
+
+    # For the obfuscate types
+    match = re.findall(my_emailObfuscate_pat, line.lower())
+    # if len(match) != 0:
+    #     print colored(match, 'red')
+    for m in match:
+        if m[4] == "":
+            m = (m[10].replace("-", ""), m[1].replace("-", ""),  m[7].replace("-", ""))
+            email = '%s@%s.%s' % m
+            res.append((name, 'e', email))
+        else:
+            m = (m[10].replace("-", ""), m[1].replace("-", ""), m[4].replace("-", ""), m[7].replace("-", ""))
+            email = '%s@%s.%s.%s' % m
+            res.append((name, 'e', email))
+
+    return res[:]
+
+
+my_phone_pat = '(&thinsp;|&ensp;|&emsp;|\D|^)\(?([0-9]{3})\)?-?\s?(&thinsp;|&ensp;|&emsp;)?([0-9]{3})(-|\s|&thinsp;|&ensp;|&emsp;)([0-9]{4})'
+
 def process_file(name, f):
     """
     TODO
@@ -41,34 +78,17 @@ def process_file(name, f):
         #
     res = []
     for line in f:
-        matches = re.findall(my_email_pat, line.lower())
+        res += findEmailMatches(line, name)
+        matches = re.findall(my_phone_pat, line.lower())
+        # if name in ['eroberts', 'ullman']:
+        #     print(line.lower())
+        #     print colored(matches, 'red')
         if len(matches) != 0:
             print colored(matches, 'red')
         for m in matches:
-            if  m[0] not in ["server"]:
-                if m[7] == "" or m[7] in ["dom","dot","dt",";"]:
-                    m = (m[0].replace("-", ""), m[4].replace("-", ""),m[10].replace("-", ""))
-                    email = '%s@%s.%s' % m
-                    res.append((name, 'e', email))
-                else:
-                    m = (m[0].replace("-", ""), m[4].replace("-", ""), m[7].replace("-", ""),m[10].replace("-", ""))
-                    email = '%s@%s.%s.%s' % m
-                    res.append((name, 'e', email))
-                print "\t" + colored(m, 'green')
-
-
-        match = re.findall(my_emailObfuscate_pat, line.lower())
-        if len(matches) != 0:
-            print colored(matches, 'red')
-        for m in match:
-            if m[4] == "":
-                m = (m[10].replace("-", ""), m[1].replace("-", ""),  m[7].replace("-", ""))
-                email = '%s@%s.%s' % m
-                res.append((name, 'e', email))
-            else:
-                m = (m[10].replace("-", ""), m[1].replace("-", ""), m[4].replace("-", ""), m[7].replace("-", ""))
-                email = '%s@%s.%s.%s' % m
-                res.append((name, 'e', email))
+            m = m[1], m[3], m[5]
+            number = '%s-%s-%s' % m
+            res.append((name, 'p', number))
     return res
 
 
