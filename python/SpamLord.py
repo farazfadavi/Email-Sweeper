@@ -83,8 +83,8 @@ def process_file(name, f):
         # if name in ['eroberts', 'ullman']:
         #     print(line.lower())
         #     print colored(matches, 'red')
-        if len(matches) != 0:
-            print colored(matches, 'red')
+        # if len(matches) != 0:
+        #     print colored(matches, 'red')
         for m in matches:
             m = m[1], m[3], m[5]
             number = '%s-%s-%s' % m
